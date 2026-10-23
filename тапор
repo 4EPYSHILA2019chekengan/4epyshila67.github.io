@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://android.com"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:gravity="center_vertical">
+
+    <!-- Поле для ввода первого числа -->
+    <EditText
+        android:id="@+id/etNumber1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Введите первое число"
+        android:inputType="numberDecimal"
+        android:importantForAutofill="no" />
+
+    <!-- Поле для ввода второго числа -->
+    <EditText
+        android:id="@+id/etNumber2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Введите второе число"
+        android:inputType="numberDecimal"
+        android:layout_marginTop="12dp"
+        android:importantForAutofill="no" />
+
+    <!-- Блок с кнопками арифметических операций -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="20dp"
+        android:gravity="center">
+
+        <Button android:id="@+id/btnPlus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="+" android:layout_margin="4dp"/>
+        <Button android:id="@+id/btnMinus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="-" android:layout_margin="4dp"/>
+        <Button android:id="@+id/btnMultiply" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="*" android:layout_margin="4dp"/>
+        <Button android:id="@+id/btnDivide" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="/" android:layout_margin="4dp"/>
+    </LinearLayout>
+
+    <!-- Поле вывода результата -->
+    <TextView
+        android:id="@+id/tvResult"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Результат: "
+        android:textSize="24sp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="30dp" />
+
+</LinearLayout>
