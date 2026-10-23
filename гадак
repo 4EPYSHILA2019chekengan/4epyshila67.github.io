@@ -1,0 +1,210 @@
+Создание простого калькулятора в Android Studio — отличный способ освоить основы разработки мобильных приложений. Реализовать проект можно как на Kotlin (рекомендуемый Google язык), так и на традиционном Java. [1] (https://www.youtube.com/watch?v=-4mJdLY_QQA), [2] (https://itproger.com/course/kotlin/11)
+Ниже представлена пошаговая инструкция по созданию классического калькулятора, использующего два поля для ввода чисел, кнопки операций и текстовое поле для вывода результата.
+
+Шаг 1: Создание интерфейса (activity_main.xml)
+
+Этот файл отвечает за внешний вид приложения. Вставьте данный код в текстовом режиме (Split/Code) вашего XML-макета. Здесь используется LinearLayout для последовательного вертикального размещения элементов: [1] (https://habr.com/ru/articles/779464/)
+xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://android.com"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:gravity="center_vertical">
+
+    <!-- Поле для ввода первого числа -->
+    <EditText
+        android:id="@+id/etNumber1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Введите первое число"
+        android:inputType="numberDecimal" />
+
+    <!-- Поле для ввода второго числа -->
+    <EditText
+        android:id="@+id/etNumber2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Введите второе число"
+        android:inputType="numberDecimal"
+        android:layout_marginTop="12dp" />
+
+    <!-- Блок с кнопками арифметических операций -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="20dp"
+        android:gravity="center">
+
+        <Button android:id="@+id/btnPlus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="+" android:layout_margin="4dp"/>
+        <Button android:id="@+id/btnMinus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="-" android:layout_margin="4dp"/>
+        <Button android:id="@+id/btnMultiply" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="*" android:layout_margin="4dp"/>
+        <Button android:id="@+id/btnDivide" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="/" android:layout_margin="4dp"/>
+    </LinearLayout>
+
+    <!-- Поле вывода результата -->
+    <TextView
+        android:id="@+id/tvResult"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Результат: "
+        android:textSize="24sp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="30dp" />
+
+</LinearLayout>
+Используйте код с осторожностью.
+
+Шаг 2: Написание логики приложения
+
+Выберите вкладку с тем языком программирования, который вы указали при создании проекта в Android Studio:
+
+Вариант 1: Код на Kotlin (MainActivity.kt)
+
+Самый лаконичный и современный вариант: [1] (https://habr.com/ru/articles/779464/)
+kotlin
+package com.example.mycalculator
+
+import android.os.Bundle
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+
+class MainActivity : AppCompatActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        // Связываем XML-элементы с переменными в коде
+        val etNumber1 = findViewById<EditText>(R.id.etNumber1)
+        val etNumber2 = findViewById<EditText>(R.id.etNumber2)
+        val tvResult = findViewById<TextView>(R.id.tvResult)
+
+        val btnPlus = findViewById<Button>(R.id.btnPlus)
+        val btnMinus = findViewById<Button>(R.id.btnMinus)
+        val btnMultiply = findViewById<Button>(R.id.btnMultiply)
+        val btnDivide = findViewById<Button>(R.id.btnDivide)
+
+        // Функция обработки нажатия
+        fun calculate(operation: Char) {
+            val num1Str = etNumber1.text.toString()
+            val num2Str = etNumber2.text.toString()
+
+            // Проверка на пустые поля
+            if (num1Str.isEmpty() || num2Str.isEmpty()) {
+                Toast.makeText(this, "Пожалуйста, заполните оба поля", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            val num1 = num1Str.toDouble()
+            val num2 = num2Str.toDouble()
+            var result = 0.0
+
+            when (operation) {
+                '+' -> result = num1 + num2
+                '-' -> result = num1 - num2
+                '*' -> result = num1 * num2
+                '/' -> {
+                    if (num2 == 0.0) {
+                        tvResult.text = "Ошибка: деление на ноль"
+                        return
+                    }
+                    result = num1 / num2
+                }
+            }
+            tvResult.text = "Результат: $result"
+        }
+
+        // Назначаем слушатели кликов на кнопки
+        btnPlus.setOnClickListener { calculate('+') }
+        btnMinus.setOnClickListener { calculate('-') }
+        btnMultiply.setOnClickListener { calculate('*') }
+        btnDivide.setOnClickListener { calculate('/') }
+    }
+}
+Используйте код с осторожностью.
+
+Вариант 2: Код на Java (MainActivity.java)
+
+Если ваш проект использует классический Java: [1] (https://metanit.com/java/android/4.13.php), [2] (https://www.youtube.com/watch?v=-4mJdLY_QQA)
+java
+package com.example.mycalculator;
+
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MainActivity extends AppCompatActivity {
+
+    private EditText etNumber1, etNumber2;
+    private TextView tvResult;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        etNumber1 = findViewById(R.id.etNumber1);
+        etNumber2 = findViewById(R.id.etNumber2);
+        tvResult = findViewById(R.id.tvResult);
+
+        Button btnPlus = findViewById(R.id.btnPlus);
+        Button btnMinus = findViewById(R.id.btnMinus);
+        Button btnMultiply = findViewById(R.id.btnMultiply);
+        Button btnDivide = findViewById(R.id.btnDivide);
+
+        View.OnClickListener clickListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String num1Str = etNumber1.getText().toString();
+                String num2Str = etNumber2.getText().toString();
+
+                if (num1Str.isEmpty() || num2Str.isEmpty()) {
+                    Toast.makeText(MainActivity.this, "Заполните поля!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                double num1 = Double.parseDouble(num1Str);
+                double num2 = Double.parseDouble(num2Str);
+                double result = 0.0;
+
+                int id = v.getId();
+                if (id == R.id.btnPlus) {
+                    result = num1 + num2;
+                } else if (id == R.id.btnMinus) {
+                    result = num1 - num2;
+                } else if (id == R.id.btnMultiply) {
+                    result = num1 * num2;
+                } else if (id == R.id.btnDivide) {
+                    if (num2 == 0) {
+                        tvResult.setText("Ошибка: деление на ноль");
+                        return;
+                    }
+                    result = num1 / num2;
+                }
+
+                tvResult.setText("Результат: " + result);
+            }
+        };
+
+        btnPlus.setOnClickListener(clickListener);
+        btnMinus.setOnClickListener(clickListener);
+        btnMultiply.setOnClickListener(clickListener);
+        btnDivide.setOnClickListener(clickListener);
+    }
+}
+Используйте код с осторожностью.
+Если вы хотите визуально изучить процесс создания интерфейса, расстановки кнопок или разбора кода построчно, ознакомьтесь с подробными видеоуроками:
+Если у вас возникли сложности, уточните:
+• Какой язык программирования выбран для проекта (Kotlin или Java)?
+• Какую ошибку (если она есть) показывает Android Studio при сборке?
+• Хотите ли вы создать полноценный инженерный калькулятор (с одной строкой ввода, кнопками от 0 до 9 и операциями как в стандартных приложениях)?
