@@ -1,0 +1,216 @@
+Вот готовый рабочий код для создания простого калькулятора на Kotlin.
+Этот пример использует сетку кнопок, обрабатывает ввод цифр, базовых операций (+, -, *, /) и считает результат с помощью легкой библиотеки exp4j, которая умеет вычислять математические выражения из обычной строки.
+
+0. Подготовка (Важный шаг)
+
+Чтобы приложение могло вычислять выражения вроде 2+5*3, добавьте библиотеку exp4j в файл build.gradle.kts (модуля app):
+kotlin
+dependencies {
+    // Добавьте эту строку в блок dependencies:
+    implementation("net.objecthunter:exp4j:0.4.8")
+}
+Используйте код с осторожностью.
+После добавления нажмите кнопку Sync Now вверху экрана Android Studio.
+
+1. Интерфейс: res/layout/activity_main.xml
+
+Замените содержимое вашего файла разметки следующим кодом. Здесь используется ConstraintLayout для экрана вывода и GridLayout для аккуратного размещения кнопок.
+xml
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout 
+    xmlns:android="http://android.com"
+    xmlns:app="http://android.com"
+    xmlns:tools="http://android.com"
+    xmlns:app2="http://android.com"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#222222"
+    tools:context=".MainActivity">
+
+    <!-- Экран для отображения ввода и результата -->
+    <TextView
+        android:id="@+id/tvExpression"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:gravity="end"
+        android:text=""
+        android:textColor="#FFFFFF"
+        android:textSize="32sp"
+        app2:layout_bottom_toTopOf="@id/tvResult"
+        app2:layout_constraintEnd_toEndOf="match_parent"
+        app2:layout_constraintStart_toStartOf="match_parent" />
+
+    <TextView
+        android:id="@+id/tvResult"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:gravity="end"
+        android:text="0"
+        android:textColor="#CCCCCC"
+        android:textSize="24sp"
+        app2:layout_bottom_toTopOf="@id/gridLayout"
+        app2:layout_constraintEnd_toEndOf="match_parent"
+        app2:layout_constraintStart_toStartOf="match_parent" />
+
+    <!-- Сетка кнопок 4x5 -->
+    <GridLayout
+        android:id="@+id/gridLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:columnCount="4"
+        android:rowCount="5"
+        android:padding="8dp"
+        app2:layout_constraintBottom_toBottomOf="match_parent">
+
+        <!-- Строка 1 -->
+        <Button android:id="@+id/btnC" android:text="C" style="@style/CalcButtonOp"/>
+        <Button android:id="@+id/btnBracketOpen" android:text="(" style="@style/CalcButtonOp"/>
+        <Button android:id="@+id/btnBracketClose" android:text=")" style="@style/CalcButtonOp"/>
+        <Button android:id="@+id/btnDiv" android:text="/" style="@style/CalcButtonOp"/>
+
+        <!-- Строка 2 -->
+        <Button android:id="@+id/btn7" android:text="7" style="@style/CalcButtonNum"/>
+        <Button android:id="@+id/btn8" android:text="8" style="@style/CalcButtonNum"/>
+        <Button android:id="@+id/btn9" android:text="9" style="@style/CalcButtonNum"/>
+        <Button android:id="@+id/btnMult" android:text="*" style="@style/CalcButtonOp"/>
+
+        <!-- Строка 3 -->
+        <Button android:id="@+id/btn4" android:text="4" style="@style/CalcButtonNum"/>
+        <Button android:id="@+id/btn5" android:text="5" style="@style/CalcButtonNum"/>
+        <Button android:id="@+id/btn6" android:text="6" style="@style/CalcButtonNum"/>
+        <Button android:id="@+id/btnSub" android:text="-" style="@style/CalcButtonOp"/>
+
+        <!-- Строка 4 -->
+        <Button android:id="@+id/btn1" android:text="1" style="@style/CalcButtonNum"/>
+        <Button android:id="@+id/btn2" android:text="2" style="@style/CalcButtonNum"/>
+        <Button android:id="@+id/btn3" android:text="3" style="@style/CalcButtonNum"/>
+        <Button android:id="@+id/btnAdd" android:text="+" style="@style/CalcButtonOp"/>
+
+        <!-- Строка 5 -->
+        <Button android:id="@+id/btn0" android:text="0" style="@style/CalcButtonNum" android:layout_columnSpan="2" android:layout_width="0dp" android:layout_gravity="fill_horizontal"/>
+        <Button android:id="@+id/btnDot" android:text="." style="@style/CalcButtonNum"/>
+        <Button android:id="@+id/btnEqual" android:text="=" style="@style/CalcButtonEqual"/>
+
+    </GridLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+Используйте код с осторожностью.
+Важно: Чтобы разметка работала без ошибок, добавьте базовые стили для кнопок в файл res/values/themes.xml (или styles.xml) внутрь тега <resources>:
+xml
+<style name="CalcButtonNum" parent="Widget.MaterialComponents.Button">
+    <item name="android:layout_width">0dp</item>
+    <item name="android:layout_height">80dp</item>
+    <item name="android:layout_columnWeight">1</item>
+    <item name="android:layout_margin">4dp</item>
+    <item name="android:textSize">24sp</item>
+    <item name="backgroundTint">#444444</item>
+</style>
+<style name="CalcButtonOp" parent="CalcButtonNum">
+    <item name="backgroundTint">#FF9800</item>
+</style>
+<style name="CalcButtonEqual" parent="CalcButtonNum">
+    <item name="backgroundTint">#E91E63</item>
+</style>
+Используйте код с осторожностью.
+
+2. Логика: MainActivity.kt
+
+Замените код в вашем основном Kotlin-файле. Обратите внимание на имя пакета (package ...) в первой строке вашего проекта — оставьте его своим.
+kotlin
+package com.example.calculator // Укажите здесь имя ВАШЕГО пакета
+
+import android.os.Bundle
+import android.widget.Button
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import net.objecthunter.exp4j.ExpressionBuilder
+import java.lang.Exception
+
+class MainActivity : AppCompatActivity() {
+
+    private lateinit var tvExpression: TextView
+    private lateinit var tvResult: TextView
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        tvExpression = findViewById(R.id.tvExpression)
+        tvResult = findViewById(R.id.tvResult)
+
+        // Находим все кнопки цифр и точки
+        val numButtons = listOf(
+            R.id.btn0, R.id.btn1, R.id.btn2, R.id.btn3, R.id.btn4,
+            R.id.btn5, R.id.btn6, R.id.btn7, R.id.btn8, R.id.btn9, R.id.btnDot
+        )
+
+        // Находим кнопки операций
+        val opButtons = listOf(
+            R.id.btnAdd, R.id.btnSub, R.id.btnMult, R.id.btnDiv,
+            R.id.btnBracketOpen, R.id.btnBracketClose
+        )
+
+        // Назначаем клики для цифр (просто добавляем текст на экран)
+        for (id in numButtons) {
+            findViewById<Button>(id).setOnClickListener {
+                appendExpression((it as Button).text.toString())
+            }
+        }
+
+        // Назначаем клики для операций
+        for (id in opButtons) {
+            findViewById<Button>(id).setOnClickListener {
+                appendExpression((it as Button).text.toString())
+            }
+        }
+
+        // Кнопка очистки (С)
+        findViewById<Button>(R.id.btnC).setOnClickListener {
+            tvExpression.text = ""
+            tvResult.text = "0"
+        }
+
+        // Кнопка равенства (=)
+        findViewById<Button>(R.id.btnEqual).setOnClickListener {
+            calculateResult()
+        }
+    }
+
+    // Метод добавления символов в строку выражения
+    private fun appendExpression(string: String) {
+        // Если в результате уже была ошибка, очищаем перед новым вводом
+        if (tvResult.text == "Ошибка") {
+            tvExpression.text = ""
+            tvResult.text = ""
+        }
+        tvExpression.append(string)
+    }
+
+    // Метод подсчета результата с помощью библиотеки exp4j
+    private fun calculateResult() {
+        try {
+            val expressionStr = tvExpression.text.toString()
+            if (expressionStr.isEmpty()) return
+
+            // Создаем выражение и вычисляем его
+            val expression = ExpressionBuilder(expressionStr).build()
+            val result = expression.evaluate()
+
+            // Преобразуем результат в красивый вид (убираем .0 у целых чисел)
+            val longResult = result.toLong()
+            if (result == longResult.toDouble()) {
+                tvResult.text = longResult.toString()
+            } else {
+                tvResult.text = result.toString()
+            }
+
+        } catch (e: Exception) {
+            // Если выражение введено неверно (например, "5++2" или деление на ноль)
+            tvResult.text = "Ошибка"
+        }
+    }
+}
+Используйте код с осторожностью.
+Если у вас возникнут сложности с добавлением библиотеки exp4j или появятся ошибки компиляции (красные линии в коде), дайте знать — мы разберем их по шагам! На каком языке вы предпочитаете писать, если решите расширить проект (например, добавить Java-версию)?
