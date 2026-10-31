@@ -1,0 +1,260 @@
+Похоже, что под «презентацией» вы имеете в виду приложенное методическое руководство по разработке Android-приложения «Калькулятор возраста» на Kotlin.
+Ниже собран весь основной текст учебного материала, разбитый по логическим шагам, включая код разметки, логику на Kotlin и разбор ошибок.
+
+Занятие 4. Калькулятор возраста
+
+• Цель занятия: научиться получать данные от пользователя через поле ввода и превращать их из одного типа в другой.
+• Время: 90 минут.
+• Результат: пользователь вводит год рождения, нажимает «Посчитать» и видит, сколько ему полных лет, месяцев, дней и сколько лет он проспал.
+
+Что ты узнаешь:
+
+• Что такое поле ввода EditText и как настроить клавиатуру только для цифр.
+• Типы данных String, Int и Double и как явно указывать тип переменной.
+• Как превратить текст в число: toInt().
+• Почему 7 / 2 в Kotlin равно 3, а не 3.5.
+• Как текст переносится на новую строку: \n.
+• Как выглядит «вылет» приложения и как найти его причину в Logcat.
+• Почему отступы от краёв экрана нужно задавать во вложенном контейнере.
+
+Словарик
+
+• EditText — поле, в которое пользователь вводит текст.
+• hint — серая подсказка в пустом поле (например: «Год рождения»).
+• inputType — какую клавиатуру показать: обычную, цифровую, для почты, для пароля.
+• String — строка (текст): "2008".
+• Int — целое число: 2008.
+• Double — дробное число: 6.7, 0.5, 3.0.
+• Преобразование типов — превращение значения одного типа в другой: "2008".toInt() -> 2008.
+• Исключение (exception) — ошибка во время работы программы. Если её не обработать, приложение закрывается («вылетает»).
+
+План занятия
+
+• 0–5 мин: Шаг 1. Создаём проект.
+• 5–25 мин: Шаг 2. Макет с полем ввода.
+• 25–50 мин: Шаг 3. Считаем возраст.
+• 50–60 мин: Шаг 4. Ломаем приложение и читаем Logcat.
+• 60–80 мин: Шаг 5. Месяцы, дни и дробные числа.
+• 80–90 мин: Проверь себя, задание со звёздочкой.
+
+Шаг 1. Создаём проект
+
+Настройки: New Project \(\rightarrow \) Empty Views Activity.
+• Name: Age Calculator
+• Language: Kotlin
+• Minimum SDK: API 24
+Сразу добавь тексты в app/res/values/strings.xml:
+xml
+<resources>
+    <string name="app_name">Age Calculator</string>
+    <string name="title">Калькулятор возраста</string>
+    <string name="hint_year">Год рождения</string>
+    <string name="btn_calc">Посчитать</string>
+</resources>
+Используйте код с осторожностью.
+
+Шаг 2. Макет с полем ввода
+
+⚠️ Частая ошибка: Почему padding у контейнера main не работает?
+Код шаблона в MainActivity сам задаёт отступы контейнеру с id main — ровно такие, чтобы содержимое не залезло под строку состояния и кнопки навигации. Свой android:padding у этого контейнера он перезаписывает.
+Решение: контейнер main оставляем без отступов, а всё содержимое кладём во вложенный LinearLayout с android:padding. Так мы будем делать и дальше.
+Открой activity_main.xml в режиме Split и замени код:
+xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://android.com"
+    xmlns:tools="http://android.com"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <!-- Внутренний контейнер: отступы от краёв экрана задаём здесь -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/title"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/etYear"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:hint="@string/hint_year"
+            android:inputType="number"
+            android:maxLength="4"
+            android:textSize="22sp" />
+
+        <Button
+            android:id="@+id/btnCalc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/btn_calc" />
+
+        <TextView
+            android:id="@+id/tvResult"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:textSize="20sp" />
+
+    </LinearLayout>
+</LinearLayout>
+Используйте код с осторожностью.
+Разбор атрибутов макета:
+1. Вложенный контейнер: android:padding="24dp" делает отступы изнутри. gravity="center_horizontal" выравнивает элементы по центру горизонтали, а сверху вниз они идут по очереди.
+2. Поле ввода EditText:
+	• android:hint — серая подсказка, пока поле пустое.
+	• android:inputType="number" — показывать клавиатуру только с цифрами.
+	• android:maxLength="4" — не больше 4 символов (год).
+	• layout_width="match_parent" — растянуть на всю ширину.
+💡 Важно: Другие значения inputType:
+• text — обычный текст.
+• textPersonName — имя.
+• phone — телефон.
+• textEmailAddress — почта.
+• textPassword — пароль (символы скрываются точками).
+• numberDecimal — числа с дробной частью.
+
+Шаг 3. Считаем возраст
+
+Открой MainActivity.kt и в конец метода onCreate добавь код:
+kotlin
+val etYear = findViewById<EditText>(R.id.etYear)
+val btnCalc = findViewById<Button>(R.id.btnCalc)
+val tvResult = findViewById<TextView>(R.id.tvResult)
+
+btnCalc.setOnClickListener {
+    // 1. Текст из поля ввода – это строка (String)
+    val yearText: String = etYear.text.toString()
+    
+    // 2. Превращаем строку в целое число (Int)
+    val birthYear: Int = yearText.toInt()
+    
+    // 3. Текущий год берём из календаря телефона
+    val currentYear: Int = Calendar.getInstance().get(Calendar.YEAR)
+    
+    // 4. Считаем возраст
+    val age: Int = currentYear - birthYear
+    
+    tvResult.text = "Тебе примерно $age лет"
+}
+Используйте код с осторожностью.
+Импортируй EditText, Button, TextView и Calendar (Alt + Enter). Для Calendar выбери вариант java.util.Calendar.
+💡 Важно: Явное указание типа
+Мы написали val birthYear: Int = ... — после имени через двоеточие указан тип. Можно и без него (val birthYear = ...), Kotlin сам догадается. Но пока учишься, полезно писать тип явно: так видно, где текст, а где число.
+
+Шаг 4. Ломаем приложение и читаем Logcat
+
+Если нажать кнопку «Посчитать» с пустым полем ввода, приложение «вылетит».
+Как читать вылет в Logcat:
+1. Допиши в строку фильтра level:error, чтобы получилось: package:mine level:error.
+2. Найди красную строку FATAL EXCEPTION: main.
+3. Под ней будет описание: NumberFormatException: For input string: "" (ошибка формата числа: не могу превратить пустую строку в число).
+4. Ниже найди первую синюю ссылку со своим пакетом (например, MainActivity.kt:32) — это место в коде, где вызвана функция toInt().
+
+Шаг 5. Месяцы, дни и дробные числа
+
+Замени строку tvResult.text = ... на расширенный расчёт:
+kotlin
+val months: Int = age * 12
+val days: Int = age * 365
+
+// 5. Дробное число (Double): сколько лет ушло на сон (8 часов из 24)
+val sleepYears: Double = age * 8 / 24.0
+
+tvResult.text = "Полных лет: $age\n" +
+        "Месяцев: $months\n" +
+        "Дней: примерно $days\n" +
+        "Из них во сне, лет: " + "%.1f".format(sleepYears)
+Используйте код с осторожностью.
+⚠️ Частая ошибка: Ловушка деления целых чисел
+• Если оба числа целые (Int), Kotlin делит нацело и отбрасывает дробную часть: 20 * 8 / 24 \(\rightarrow \) 160 / 24 \(\rightarrow \) 6 (а не 6.67)!
+• 7 / 2 \(\rightarrow \) 3
+• 7 / 2.0 \(\rightarrow \) 3.5 (достаточно, чтобы хотя бы одно число было дробным). Поэтому мы пишем 24.0.
+Конструкция \n переносит текст на новую строку внутри одной строки.
+"%.1f".format(sleepYears) форматирует дробное число, оставляя ровно один знак после запятой.
+
+Полный код файла MainActivity.kt
+
+kotlin
+package com.example.agecalc
+
+import android.os.Bundle
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import java.util.Calendar
+
+class MainActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState: Bundle?) {
+            super.onCreate(savedInstanceState)
+            enableEdgeToEdge()
+            setContentView(R.layout.activity_main)
+            ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+                insets
+            }
+
+            val etYear = findViewById<EditText>(R.id.etYear)
+            val btnCalc = findViewById<Button>(R.id.btnCalc)
+            val tvResult = findViewById<TextView>(R.id.tvResult)
+
+            btnCalc.setOnClickListener {
+                // 1. Текст из поля ввода – это строка (String)
+                val yearText: String = etYear.text.toString()
+                // 2. Превращаем строку в целое число (Int)
+                val birthYear: Int = yearText.toInt()
+                // 3. Текущий год берём из календаря телефона
+                val currentYear: Int = Calendar.getInstance().get(Calendar.YEAR)
+                // 4. Считаем возраст
+                val age: Int = currentYear - birthYear
+
+                val months: Int = age * 12
+                val days: Int = age * 365
+                // 5. Дробное число (Double): сколько лет ушло на сон (8 часов из 24)
+                val sleepYears: Double = age * 8 / 24.0
+
+                tvResult.text = "Полных лет: $age\n" +
+                        "Месяцев: $months\n" +
+                        "Дней: примерно $days\n" +
+                        "Из них во сне, лет: " + "%.1f".format(sleepYears)
+            }
+        }
+    }
+}
+Используйте код с осторожностью.
+
+Вопросы для самопроверки
+
+1. Какой тип у значения, которое пользователь ввёл в EditText? Почему?
+2. Чем "2008" отличается от 2008?
+3. Что сделает android:inputType="number"?
+4. Сколько будет 10 / 4 в Kotlin? А 10 / 4.0?
+5. Как сделать перенос строки внутри текста?
+6. Приложение вылетело. Где посмотреть причину и какую строку там искать?
+7. Почему отступ от краёв задаём во вложенном LinearLayout, а не в контейнере main?
+
+⭐ Задание со звёздочкой
+
+• Часы и минуты: Добавь в результат ещё две строки: сколько примерно часов и минут прожил пользователь. Подсказка: дней \(\times \) 24 и часов \(\times \) 60. Для 2000 года число минут большое, но в Int пока помещается.
+• Возраст в следующем году: Добавь строку «В следующем году будет: ...». Подсказка: age + 1.
+Если нужно, я могу помочь тебе ответить на вопросы для самопроверки или написать готовое решение для задания со звёздочкой (расчет минут и возраста на следующий год). Что именно разберём?
